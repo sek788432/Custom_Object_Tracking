@@ -60,24 +60,24 @@ parser = argparse.ArgumentParser(description='Download and process tf files')
 parser.add_argument('--saved_model_path', required=True,
                     help='path to saved model')
 parser.add_argument('--test_path', required=True,
-                    help='path to test image')
+                    help='path to test video')
 
 parser.add_argument('--output_path', required=True,
-                    help='path to output predicted image')
+                    help='path to output predicted video')
 parser.add_argument('--min_score_thresh', required=False, default=0.0,
                     help='min score threshold')
 args = parser.parse_args()
+
+# Path definition
 PATH_TO_SAVED_MODEL = os.path.join(args.saved_model_path, "saved_model")
-PATH_TO_TEST_IMAGE = args.test_path
-PATH_TO_OUTPUT_IMAGE = args.output_path 
+PATH_TO_TEST_VIDEO = args.test_path
+PATH_TO_OUTPUT_VIDEO = args.output_path 
 MIN_SCORE_THRESH = float(args.min_score_thresh)
-os.makedirs(PATH_TO_OUTPUT_IMAGE, exist_ok=True)
+
 # Load the Labels
 PATH_TO_LABELS = "label_map.pbtxt"
 category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS,
                         use_display_name=True)
-
-print(category_index)
 
 # Load saved model and build the detection function
 print('Loading model...', end='')
@@ -87,12 +87,20 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print('Done! Took {} seconds'.format(elapsed_time))
 
-TOTAL_TEST_IMAGES = os.listdir(PATH_TO_TEST_IMAGE)
-for filename in TOTAL_TEST_IMAGES:
-    filename_path = os.path.join(PATH_TO_TEST_IMAGE, filename)
-    print('Running inference for {}... '.format(filename_path))
-    image_np = cv2.imread(filename_path)
-    image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+# Video setting
+cap = cv2.VideoCapture(PATH_TO_TEST_VIDEO)
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps = int(cap.get(cv2.CAP_PROP_FPS))
+codec = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter(PATH_TO_OUTPUT_VIDEO, codec, fps, (width, height)) # output_path must be .mp4
+
+while True:
+    ret, frame = cap.read()
+    if ret == False:
+      break
+    
+    image_np = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
     input_tensor = tf.convert_to_tensor(image_np)
@@ -108,7 +116,7 @@ for filename in TOTAL_TEST_IMAGES:
     detections['num_detections'] = num_detections
 
     # detection_classes should be ints.
-    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)  
+    detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
     image_np_with_detections = image_np.copy()
     
     # viz_utils.visualize_boxes_and_labels_on_image_array(
@@ -135,7 +143,7 @@ for filename in TOTAL_TEST_IMAGES:
       detections,
       category_index,
       indexes)
-    cv2.imwrite(os.path.join(PATH_TO_OUTPUT_IMAGE, filename), image_np_with_detections[:,:,::-1])
-    print('Done')
-
-
+    
+    out.write(image_np_with_detections[:,:,::-1])
+    
+print('Done')
