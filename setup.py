@@ -7,5 +7,5 @@ setup(name='objectTracking',
       author='Jeff Lo',
       author_email='jefflo.861104@gmail.com',
       url='https://github.com/sek788432/Waymo-Object-Tracking',
-      packages=['objectTracking_'],
+      packages=['*'],
      )
