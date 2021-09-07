@@ -19,42 +19,30 @@ for gpu in gpus:
 import time
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
+from deep_sort import nn_matching
+from deep_sort.detection import Detection
+from deep_sort.tracker import Tracker
+from deep_sort import generate_detections as gdet
+
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
     lv = len(value)
     return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
 
-def draw_bounding_boxes_on_image(image,
-                 box,
-                 color,
-                 thickness=2,
-                 label_txt=''):
-    height, width = image.shape[:2]
-    ymin, xmin, ymax, xmax = box
-    xmin = int(xmin * width)
-    xmax = int(xmax * width)
-    ymin = int(ymin * height)
-    ymax = int(ymax * height)
-    fontScale = 0.5
-    fontFace = cv2.FONT_HERSHEY_COMPLEX
-    labelSize = cv2.getTextSize(label_txt, fontFace, fontScale, thickness)
-    cv2.rectangle(image, (xmin,ymin), (xmax,ymax), color, thickness)
-    cv2.rectangle(image, (xmin,ymin-labelSize[0][1]), (xmin+labelSize[0][0],ymin), color, -1)
-    cv2.putText(image, label_txt, (xmin,ymin), fontFace, fontScale, (0,0,0), thickness)    
-
-def draw_boxes(image, boxes, category_index, indexes):
+def draw_boxes(image, boxes, category_index):
     colors = list(ImageColor.colormap.values())
-    for i in range(len(indexes)):
-        # ymin, xmin, ymax, xmax = boxes["detection_boxes"][i]
-        scores, classes = boxes["detection_scores"][i], boxes["detection_classes"][i]
-        color = colors[hash(category_index[classes]['name']) % len(colors)]
-        # print(color)
-        label_txt = '{}: {}%'.format(category_index[classes]['name'], int(scores*100))
-        draw_bounding_boxes_on_image(image,
-                      boxes["detection_boxes"][i],
-                      hex_to_rgb(color),
-                      label_txt=label_txt)
+    for xmin, ymin, xmax, ymax, tracking_id, class_name in boxes:
+        xmin, ymin, xmax, ymax = int(xmin), int(ymin), int(xmax), int(ymax)
+        label_txt = class_name + ' ' + str(tracking_id)
+        color = hex_to_rgb(colors[hash(category_index[classes]['name']) % len(colors)])
+        thickness = 2
+        fontScale = 0.5
+        fontFace = cv2.FONT_HERSHEY_COMPLEX
+        labelSize = cv2.getTextSize(label_txt, fontFace, fontScale, thickness)
+        cv2.rectangle(image_np_with_detections, (xmin,ymin), (xmax,ymax), color, thickness)
+        cv2.rectangle(image_np_with_detections, (xmin,ymin-labelSize[0][1]), (xmin+labelSize[0][0],ymin), color, -1)
+        cv2.putText(image_np_with_detections, label_txt, (xmin,ymin), fontFace, fontScale, (0,0,0), thickness)
 
 parser = argparse.ArgumentParser(description='Download and process tf files')
 parser.add_argument('--saved_model_path', required=True,
@@ -87,6 +75,15 @@ end_time = time.time()
 elapsed_time = end_time - start_time
 print('Done! Took {} seconds'.format(elapsed_time))
 
+# Definition of the parameters
+max_cosine_distance = 0.7
+nn_budget = None
+
+# initialize deep sort object
+
+metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
+tracker = Tracker(metric)
+
 # Video setting
 cap = cv2.VideoCapture(PATH_TO_TEST_VIDEO)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -94,6 +91,17 @@ height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 codec = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter(PATH_TO_OUTPUT_VIDEO, codec, fps, (width, height)) # output_path must be .mp4
+
+
+# Definition of the parameters
+max_cosine_distance = 0.7
+nn_budget = None
+
+#initialize deep sort object
+model_filename = 'data/mars-small128.pb'
+encoder = gdet.create_box_encoder(model_filename, batch_size=1)
+metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
+tracker = Tracker(metric)
 
 while True:
     ret, frame = cap.read()
@@ -118,17 +126,6 @@ while True:
     # detection_classes should be ints.
     detections['detection_classes'] = detections['detection_classes'].astype(np.int64)
     image_np_with_detections = image_np.copy()
-    
-    # viz_utils.visualize_boxes_and_labels_on_image_array(
-    #       image_np_with_detections,
-    #       detections['detection_boxes'],
-    #       detections['detection_classes'],
-    #       detections['detection_scores'],
-    #       category_index,
-    #       use_normalized_coordinates=True,
-    #       max_boxes_to_draw=200,
-    #       min_score_thresh=MIN_SCORE_THRESH,
-    #       agnostic_mode=False)
 
     # filter score > MIN_SCORE_THRESH
     indexes = [ i for i in range(len(detections["detection_scores"])) 
@@ -138,11 +135,49 @@ while True:
     detections["detection_scores"] = detections["detection_scores"][indexes, ...]
     detections["detection_classes"] = detections["detection_classes"][indexes, ...]
     
+    height, width = image_np_with_detections.shape[:2]
+    boxes, scores, names = [], [], []
+    Track_only = [category_index[ID]['name'] for ID in category_index]
+
+    for i in range(len(indexes)):
+        ymin, xmin, ymax, xmax = detections["detection_boxes"][i]
+        score, classes = detections["detection_scores"][i], detections["detection_classes"][i]
+        xmin = int(xmin * width)
+        xmax = int(xmax * width)
+        ymin = int(ymin * height)
+        ymax = int(ymax * height)
+        if len(Track_only) !=0 and category_index[classes]['name'] in Track_only or len(Track_only) == 0:
+            boxes.append([xmin, ymin, xmax-xmin, ymax-ymin])
+            scores.append(score)
+            names.append(category_index[classes]['name'])
+    
+    # Obtain all the detections for the given frame.
+    boxes = np.array(boxes) 
+    names = np.array(names)
+    scores = np.array(scores)
+    features = np.array(encoder(image_np.copy(), boxes))
+    track_detections = [Detection(bbox, score, class_name, feature) for bbox, score, class_name, feature in zip(boxes, scores, names, features)]
+    
+    # Pass detections to the deepsort object and obtain the track information.
+    tracker.predict()
+    tracker.update(track_detections)
+    
+    # Obtain info from the tracks
+    tracked_bboxes = []
+    for track in tracker.tracks:
+        if not track.is_confirmed() or track.time_since_update > 5:
+            continue 
+        bbox = track.to_tlbr() # Get the corrected/predicted bounding box
+        class_name = track.get_class() #Get the class name of particular object
+        tracking_id = track.track_id # Get the ID for the particular track
+        # index = key_list[val_list.index(class_name)] # Get predicted object index by object name
+        tracked_bboxes.append(bbox.tolist() + [tracking_id, class_name]) # Structure data, that we could use it with our draw_bbox function
+      
     draw_boxes(
       image_np_with_detections,
-      detections,
-      category_index,
-      indexes)
+      tracked_bboxes,
+      category_index
+    )
     
     out.write(image_np_with_detections[:,:,::-1])
     
