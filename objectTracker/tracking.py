@@ -172,27 +172,27 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
 
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Download and process tf files')
-    parser.add_argument('--saved_model_path', required=True,
-                        help='path to saved model')
-    parser.add_argument('--test_path', required=True,
-                        help='path to test video')
-    parser.add_argument('--label_map_path', required=True, help='path to label map')
-    parser.add_argument('--deep_sort_model', required=True, help='path to deep sort model')
-    parser.add_argument('--output_path', required=True,
-                        help='path to output predicted video')
-    parser.add_argument('--min_score_thresh', required=False, default=0.0,
-                        help='min score threshold')
+# if __name__ == '__main__':
+#     parser = argparse.ArgumentParser(description='Download and process tf files')
+#     parser.add_argument('--saved_model_path', required=True,
+#                         help='path to saved model')
+#     parser.add_argument('--test_path', required=True,
+#                         help='path to test video')
+#     parser.add_argument('--label_map_path', required=True, help='path to label map')
+#     parser.add_argument('--deep_sort_model', required=True, help='path to deep sort model')
+#     parser.add_argument('--output_path', required=True,
+#                         help='path to output predicted video')
+#     parser.add_argument('--min_score_thresh', required=False, default=0.0,
+#                         help='min score threshold')
 
-    args = parser.parse_args()
+#     args = parser.parse_args()
 
-    # Path definition
-    PATH_TO_SAVED_MODEL = os.path.join(args.saved_model_path, "saved_model")
-    PATH_TO_TEST_VIDEO = args.test_path
-    PATH_TO_OUTPUT_VIDEO = args.output_path 
-    PATH_TO_LABELS = args.label_map_path
-    DEEP_SORT_MODEL = args.deep_sort_model
-    MIN_SCORE_THRESH = float(args.min_score_thresh)
+#     # Path definition
+#     PATH_TO_SAVED_MODEL = os.path.join(args.saved_model_path, "saved_model")
+#     PATH_TO_TEST_VIDEO = args.test_path
+#     PATH_TO_OUTPUT_VIDEO = args.output_path 
+#     PATH_TO_LABELS = args.label_map_path
+#     DEEP_SORT_MODEL = args.deep_sort_model
+#     MIN_SCORE_THRESH = float(args.min_score_thresh)
 
-    TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO, PATH_TO_OUTPUT_VIDEO,  MIN_SCORE_THRESH, DEEP_SORT_MODEL)
+#     TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO, PATH_TO_OUTPUT_VIDEO,  MIN_SCORE_THRESH, DEEP_SORT_MODEL)
