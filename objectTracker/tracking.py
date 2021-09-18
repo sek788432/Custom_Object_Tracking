@@ -20,7 +20,10 @@ import time
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
 from .deep_sort import nn_matching
+<<<<<<< HEAD
 from .deep_sort import preprocessing
+=======
+>>>>>>> b0ea241ed3e4aeeeeb63654ab8c405195657fdfd
 from .deep_sort.detection import Detection
 from .deep_sort.tracker import Tracker
 from .deep_sort import generate_detections as gdet
