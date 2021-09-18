@@ -58,6 +58,7 @@ def min_cost_matching(
     indices = linear_sum_assignment(cost_matrix)
     indices = np.asarray(indices)
     indices = np.transpose(indices)
+    
     matches, unmatched_tracks, unmatched_detections = [], [], []
     for col, detection_idx in enumerate(detection_indices):
         if col not in indices[:, 1]:

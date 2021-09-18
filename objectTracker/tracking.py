@@ -1,4 +1,4 @@
-# import argparse
+import argparse
 import os
 import cv2
 import numpy as np
@@ -19,11 +19,11 @@ for gpu in gpus:
 import time
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as viz_utils
-from deep_sort import nn_matching
-from deep_sort.detection import Detection
-from deep_sort.tracker import Tracker
-from deep_sort import generate_detections as gdet
-
+from .deep_sort import nn_matching
+from .deep_sort import preprocessing
+from .deep_sort.detection import Detection
+from .deep_sort.tracker import Tracker
+from .deep_sort import generate_detections as gdet
 
 def hex_to_rgb(value):
     value = value.lstrip('#')
@@ -47,7 +47,7 @@ def draw_boxes(image, boxes, category_index):
 def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO, 
                PATH_TO_OUTPUT_VIDEO, MIN_SCORE_THRESH, DEEP_SORT_MODEL):
     
-
+    PATH_TO_SAVED_MODEL = os.path.join(PATH_TO_SAVED_MODEL, "saved_model")
     category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS,
                             use_display_name=True)
 
@@ -61,6 +61,7 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
 
     # Definition of the parameters
     max_cosine_distance = 0.7
+    nms_max_overlap = 0.5
     nn_budget = None
 
     # initialize deep sort object
@@ -76,10 +77,6 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
     codec = cv2.VideoWriter_fourcc(*'XVID')
     out = cv2.VideoWriter(PATH_TO_OUTPUT_VIDEO, codec, fps, (width, height)) # output_path must be .mp4
 
-
-    # Definition of the parameters
-    max_cosine_distance = 0.7
-    nn_budget = None
 
     #initialize deep sort object
     model_filename = DEEP_SORT_MODEL
@@ -144,6 +141,13 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
         features = np.array(encoder(image_np.copy(), boxes))
         track_detections = [Detection(bbox, score, class_name, feature) for bbox, score, class_name, feature in zip(boxes, scores, names, features)]
 
+        
+        # Run non-maxima suppression.
+        boxes = np.array([d.tlwh for d in track_detections])
+        scores = np.array([d.confidence for d in track_detections])
+        indices = preprocessing.non_max_suppression(boxes, nms_max_overlap, scores)
+        track_detections = [track_detections[i] for i in indices]
+        
         # Pass detections to the deepsort object and obtain the track information.
         tracker.predict()
         tracker.update(track_detections)
@@ -172,27 +176,27 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
 
 
 
-# if __name__ == '__main__':
-#     parser = argparse.ArgumentParser(description='Download and process tf files')
-#     parser.add_argument('--saved_model_path', required=True,
-#                         help='path to saved model')
-#     parser.add_argument('--test_path', required=True,
-#                         help='path to test video')
-#     parser.add_argument('--label_map_path', required=True, help='path to label map')
-#     parser.add_argument('--deep_sort_model', required=True, help='path to deep sort model')
-#     parser.add_argument('--output_path', required=True,
-#                         help='path to output predicted video')
-#     parser.add_argument('--min_score_thresh', required=False, default=0.0,
-#                         help='min score threshold')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Download and process tf files')
+    parser.add_argument('--saved_model_path', required=True,
+                        help='path to saved model')
+    parser.add_argument('--test_path', required=True,
+                        help='path to test video')
+    parser.add_argument('--label_map_path', required=True, help='path to label map')
+    parser.add_argument('--deep_sort_model', required=True, help='path to deep sort model')
+    parser.add_argument('--output_path', required=True,
+                        help='path to output predicted video')
+    parser.add_argument('--min_score_thresh', required=False, default=0.0,
+                        help='min score threshold')
 
-#     args = parser.parse_args()
+    args = parser.parse_args()
 
-#     # Path definition
-#     PATH_TO_SAVED_MODEL = os.path.join(args.saved_model_path, "saved_model")
-#     PATH_TO_TEST_VIDEO = args.test_path
-#     PATH_TO_OUTPUT_VIDEO = args.output_path 
-#     PATH_TO_LABELS = args.label_map_path
-#     DEEP_SORT_MODEL = args.deep_sort_model
-#     MIN_SCORE_THRESH = float(args.min_score_thresh)
+    # Path definition
+    PATH_TO_SAVED_MODEL = args.saved_model_path
+    PATH_TO_TEST_VIDEO = args.test_path
+    PATH_TO_OUTPUT_VIDEO = args.output_path 
+    PATH_TO_LABELS = args.label_map_path
+    DEEP_SORT_MODEL = args.deep_sort_model
+    MIN_SCORE_THRESH = float(args.min_score_thresh)
 
-#     TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO, PATH_TO_OUTPUT_VIDEO,  MIN_SCORE_THRESH, DEEP_SORT_MODEL)
+    TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO, PATH_TO_OUTPUT_VIDEO,  MIN_SCORE_THRESH, DEEP_SORT_MODEL)
