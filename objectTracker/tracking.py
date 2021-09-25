@@ -64,11 +64,6 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
     nms_max_overlap = 0.5
     nn_budget = None
 
-    # initialize deep sort object
-
-    metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
-    tracker = Tracker(metric)
-
     # Video setting
     cap = cv2.VideoCapture(PATH_TO_TEST_VIDEO)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -87,7 +82,7 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
     while True:
         ret, frame = cap.read()
         if ret == False:
-          break
+            break
 
         image_np = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -165,9 +160,9 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
             tracked_bboxes.append(bbox.tolist() + [tracking_id, class_name])  
         
         draw_boxes(
-          image_np_with_detections,
-          tracked_bboxes,
-          category_index
+            image_np_with_detections,
+            tracked_bboxes,
+            category_index
         )
 
         out.write(image_np_with_detections[:,:,::-1])
