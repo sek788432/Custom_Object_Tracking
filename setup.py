@@ -15,8 +15,8 @@ from setuptools import find_packages, setup, Command
 NAME = 'objectTracker'
 DESCRIPTION = 'An object tracking API'
 URL = 'https://github.com/sek788432/Waymo-Object-Tracking'
-EMAIL = 'jefflo.861104@gmail.com'
-AUTHOR = 'Jeff Lo, Jia Lun'
+EMAIL = 'jefflo.861104@gmail.com, gyes00205@gmail.com'
+AUTHOR = 'Jeff Lo, Chia-Lun Hsu'
 REQUIRES_PYTHON = '>=3.6.0'
 VERSION = '0.1.0'
 
