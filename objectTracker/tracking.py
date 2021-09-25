@@ -63,6 +63,8 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
     max_cosine_distance = 0.7
     nms_max_overlap = 0.5
     nn_budget = None
+    id_table = {}
+    new_index = 1
 
     # initialize deep sort object
 
@@ -157,13 +159,19 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
         for track in tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 5:
                 continue 
+                
             bbox = track.to_tlbr() # Get the corrected/predicted bounding box
             class_name = track.get_class() #Get the class name of particular object
             tracking_id = track.track_id # Get the ID for the particular track
+            
+            if  tracking_id  not in id_table:
+                id_table[tracking_id] = new_index
+                new_index += 1
+                
             # index = key_list[val_list.index(class_name)] # Get predicted object index by object name
             # Structure data, that we could use it with our draw_bbox function
-            tracked_bboxes.append(bbox.tolist() + [tracking_id, class_name])  
-        
+            tracked_bboxes.append(bbox.tolist() + [id_table[tracking_id], class_name])  
+            
         draw_boxes(
           image_np_with_detections,
           tracked_bboxes,
@@ -171,7 +179,6 @@ def TrackVideo(PATH_TO_LABELS, PATH_TO_SAVED_MODEL, PATH_TO_TEST_VIDEO,
         )
 
         out.write(image_np_with_detections[:,:,::-1])
-
     print('Done')
 
 
