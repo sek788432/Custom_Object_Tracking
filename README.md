@@ -40,5 +40,5 @@ cd  Custom-Object-Tracking/objectTracker/
     ```
 
 ## Result
-### Tracking vehicle by our own model
+### Tracking vehicle by our own model (SSD ResNet50 trained on Waymo Dataset)
 ![Vehicle Tracking](test_video_tracking.gif?raw=true "video")
