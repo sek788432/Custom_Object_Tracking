@@ -9,7 +9,6 @@ Please install [Tensorflow 2 Object Detection API](https://tensorflow-object-det
 ### 1. Clone the github repository
 ```shell
 git clone https://github.com/sek788432/Custom_Object_Tracking.git
-cd  Custom_Object_Tracking/objectTracker/
 ```
 
 ### 2. Execution (In two ways)
@@ -23,6 +22,7 @@ cd  Custom_Object_Tracking/objectTracker/
 1. Run tracking.py
 * e.g.
     ```shell
+    cd  Custom_Object_Tracking/objectTracker/
     python tracking.py \
         --saved_model_path=exported-models/ssd_resnet50_119ckpt \
         --test_path=test_video.mp4 \
