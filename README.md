@@ -7,7 +7,7 @@ Please install [Tensorflow 2 Object Detection API](https://tensorflow-object-det
 
 ## Usage
 ### 1. Clone the github repository
-```
+```shell
 git clone https://github.com/sek788432/Custom-Object-Tracking.git
 cd  Custom-Object-Tracking/objectTracker/
 ```
@@ -22,7 +22,7 @@ cd  Custom-Object-Tracking/objectTracker/
 
 1. Run tracking.py
 * e.g.
-    ```   
+    ```shell
     python tracking.py \
         --saved_model_path=exported-models/ssd_resnet50_119ckpt \
         --test_path=test_video.mp4 \
@@ -33,7 +33,7 @@ cd  Custom-Object-Tracking/objectTracker/
     ```
 2. Call TrackVideo funciton
 * e.g.
-    ```
+    ```python
     from WaymoObjectTracking.objectTracker.tracking import TrackVideo
     TrackVideo(label_path, model_path, video_path,
                    output_path, threshold, deep_sort_model)
