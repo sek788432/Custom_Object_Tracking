@@ -30,4 +30,4 @@ cd  Custom-Object-Tracking/objectTracker/
 
 ## Result
 ### Tracking vehicle by our own model
-![Vehicle Tracking](test_video_tracking.mp4?raw=true "video")
+![Vehicle Tracking](test_video_tracking.gif?raw=true "video")
