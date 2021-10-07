@@ -31,7 +31,7 @@ git clone https://github.com/sek788432/Custom_Object_Tracking.git
         --output_path=test_video_tracking.mp4 \
         --min_score_thresh=.5
     ```
-2. Call TrackVideo funciton
+2. Call TrackVideo function
 * e.g.
     ```python
     from Custom_Object_Tracking.objectTracker.tracking import TrackVideo
