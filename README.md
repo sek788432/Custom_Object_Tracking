@@ -1,22 +1,26 @@
 # Custom-Object-Tracking
+## Introduction
+This repo provides feature to track multi-objects on videos with a given trained object detection model and a source video file as inputs. The tracking approach used in the repo is [DeepSort](https://github.com/nwojke/deep_sort) - [Simple Online and Realtime Tracking with a Deep Association Metric](https://arxiv.org/pdf/1703.07402.pdf)
 
 ## Installation
 Please install [Tensorflow 2 Object Detection API](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/install.html) and add the path to your environment.
 
 ## Usage
-1. Clone the github repository
+### 1. Clone the github repository
 ```
 git clone https://github.com/sek788432/Custom-Object-Tracking.git
 cd  Custom-Object-Tracking/objectTracker/
 ```
 
-2. Run the tracking.py
+### 2. Execution (In two ways)
 * saved_model_path: your own object detection model ckpt path
 * test_path: test video path
 * label_map_path: label_map.pbtxt path
 * deep_sort_model: deep sort model path
 * output_path: output video path
 * min_score_thresh: the minimum score threshold of object detection model
+
+1. Run tracking.py
 * e.g.
     ```   
     python tracking.py \
@@ -26,6 +30,13 @@ cd  Custom-Object-Tracking/objectTracker/
         --deep_sort_model=data/mars-small128.pb \
         --output_path=test_video_tracking.mp4 \
         --min_score_thresh=.5
+    ```
+2. Call TrackVideo funciton
+* e.g.
+    ```
+    from WaymoObjectTracking.objectTracker.tracking import TrackVideo
+    TrackVideo(label_path, model_path, video_path,
+                   output_path, threshold, deep_sort_model)
     ```
 
 ## Result
