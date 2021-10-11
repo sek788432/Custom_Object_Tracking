@@ -1,6 +1,6 @@
 # Custom Object Tracking
 ## Introduction
-This repo provides feature to track multi-objects on videos with a given trained object detection model and a source video file as inputs. The tracking approach used in the repo is [DeepSort](https://github.com/nwojke/deep_sort) - [Simple Online and Realtime Tracking with a Deep Association Metric](https://arxiv.org/pdf/1703.07402.pdf)
+This repo provides function call to track multi-objects in videos with a given trained object detection model and a source video file as inputs. The tracking approach used in the repo is [DeepSort](https://github.com/nwojke/deep_sort) - [Simple Online and Realtime Tracking with a Deep Association Metric](https://arxiv.org/pdf/1703.07402.pdf)
 
 ## Installation
 Please install [Tensorflow 2 Object Detection API](https://tensorflow-object-detection-api-tutorial.readthedocs.io/en/latest/install.html) and add the path to your environment.
